@@ -1,13 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import web3 from "../lib/web3";
-
-interface TransactionInfo {
-  from: string;
-  to: string;
-  amount: string;
-  transactionHash: string;
-}
+import {
+  useTransactionStore,
+  TransactionInfo,
+} from "../store/transactionStore";
 
 export default function Home() {
   const [accounts, setAccounts] = useState<string[]>([]);
@@ -21,6 +18,9 @@ export default function Home() {
       amount: "",
       transactionHash: "",
     });
+
+  const { transactions, addTransaction, clearTransactions } =
+    useTransactionStore();
 
   useEffect(() => {
     const loadAccounts = async () => {
@@ -59,12 +59,15 @@ export default function Home() {
         to: selectedTo,
         value: web3.utils.toWei(amount, "ether"),
       });
-      setSuccessedTransaction({
+      const transactionInfo: TransactionInfo = {
         from: selectedFrom,
         to: selectedTo,
         amount: amount,
         transactionHash: transaction.transactionHash.toString(),
-      });
+      };
+      setSuccessedTransaction(transactionInfo);
+      // Zustand store에 저장 (localStorage에 자동으로 저장됨)
+      addTransaction(transactionInfo);
     } catch (error) {
       console.error(error);
     }
@@ -113,7 +116,7 @@ export default function Home() {
           <button
             className="bg-blue-500 text-white p-2 rounded-md disabled:bg-gray-500 disabled:text-white"
             onClick={handleSendTransaction}
-            disabled={selectedFrom === selectedTo || !amount}
+            disabled={selectedFrom === selectedTo || Number(amount) <= 0}
           >
             Send
           </button>
@@ -137,6 +140,54 @@ export default function Home() {
             )}
           </div>
         </div>
+      </div>
+      <div className="flex flex-col gap-4 w-[40%]">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">Transaction History</h2>
+          {transactions.length > 0 && (
+            <button
+              onClick={clearTransactions}
+              className="text-sm bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
+        {transactions.length === 0 ? (
+          <p className="text-gray-500">No transactions yet</p>
+        ) : (
+          <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto">
+            {transactions
+              .slice()
+              .reverse()
+              .map((tx, index) => (
+                <div
+                  key={`${tx.transactionHash}-${index}`}
+                  className="flex flex-col gap-2 bg-gray-100 dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700"
+                >
+                  <p className="text-sm break-words">
+                    <span className="font-semibold">From:</span> {tx.from}
+                  </p>
+                  <p className="text-sm break-words">
+                    <span className="font-semibold">To:</span> {tx.to}
+                  </p>
+                  <p className="text-sm break-words">
+                    <span className="font-semibold">Amount:</span> {tx.amount}{" "}
+                    ETH
+                  </p>
+                  <p className="text-sm break-words">
+                    <span className="font-semibold">Hash:</span>{" "}
+                    {tx.transactionHash}
+                  </p>
+                  {tx.timestamp && (
+                    <p className="text-xs text-gray-500">
+                      {new Date(tx.timestamp).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              ))}
+          </div>
+        )}
       </div>
     </div>
   );
