@@ -8,6 +8,7 @@ web3를 가지고 이것 저것 만드는 중
 
 1. 이더리움 송금
 2. 송금 내역 노출
+3. ~~MetaMask...~~
 
 ## Getting Started
 
