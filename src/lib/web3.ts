@@ -1,6 +1,7 @@
 import Web3 from "web3";
 import { MetaMaskInpageProvider } from "@metamask/providers";
 import { isLocalEnvironment } from "../utils/environment";
+import { useWeb3StatusStore } from "../store/web3StatusStore";
 
 declare global {
   interface Window {
@@ -22,17 +23,22 @@ export const initializeWeb3 = (
   useMetaMask?: boolean,
   rpcUrl?: string
 ): Promise<boolean> => {
+  const { setWeb3Status, setMetamaskInstalled } = useWeb3StatusStore.getState();
   if (web3Instance) {
+    setWeb3Status("initialized");
     return Promise.resolve(true);
   }
   const hasProvider = typeof window !== "undefined" && !!window.ethereum;
   const shouldUseMetaMask = useMetaMask ?? hasProvider;
 
   if (useMetaMask && !hasProvider) {
-    return Promise.reject(new Error("MetaMask is not installed"));
+    setMetamaskInstalled(false);
+    setWeb3Status("error");
+    return Promise.resolve(false);
   }
 
   if (shouldUseMetaMask && hasProvider) {
+    setMetamaskInstalled(true);
     web3Instance = new Web3(window.ethereum);
   } else {
     const getRpcUrl = () => {
@@ -49,6 +55,7 @@ export const initializeWeb3 = (
     web3Instance = new Web3(new Web3.providers.HttpProvider(getRpcUrl()));
   }
 
+  setWeb3Status("initialized");
   return Promise.resolve(true);
 };
 

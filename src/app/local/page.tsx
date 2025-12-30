@@ -38,7 +38,7 @@ export default function LocalPage() {
 
     loadAccounts().catch((err) => {
       if (err.message === "Failed to fetch") {
-        alert("turn on ganashe");
+        alert("please start ganache");
       }
     });
   }, []);
