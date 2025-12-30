@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import web3 from "../../lib/web3";
 import {
   useTransactionStore,
   TransactionInfo,
 } from "../../store/transactionStore";
+import { getWeb3 } from "@/src/lib/web3";
 
 export default function LocalPage() {
   const [accounts, setAccounts] = useState<string[]>([]);
@@ -24,7 +24,7 @@ export default function LocalPage() {
 
   useEffect(() => {
     const loadAccounts = async () => {
-      const accounts = await web3.eth.getAccounts();
+      const accounts = await getWeb3().eth.getAccounts();
       setAccounts(accounts);
       if (accounts.length > 0) {
         setSelectedFrom(accounts[0]);
@@ -57,10 +57,10 @@ export default function LocalPage() {
 
   const handleSendTransaction = async () => {
     try {
-      const transaction = await web3.eth.sendTransaction({
+      const transaction = await getWeb3().eth.sendTransaction({
         from: selectedFrom,
         to: selectedTo,
-        value: web3.utils.toWei(amount, "ether"),
+        value: getWeb3().utils.toWei(amount, "ether"),
       });
       const transactionInfo: TransactionInfo = {
         from: selectedFrom,

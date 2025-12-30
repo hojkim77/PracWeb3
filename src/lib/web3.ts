@@ -24,12 +24,14 @@ export const initializeWeb3 = (
   rpcUrl?: string
 ): Promise<boolean> => {
   const { setWeb3Status, setMetamaskInstalled } = useWeb3StatusStore.getState();
+
+  const hasProvider = typeof window !== "undefined" && !!window.ethereum;
+  const shouldUseMetaMask = useMetaMask && hasProvider;
+
   if (web3Instance) {
     setWeb3Status("initialized");
     return Promise.resolve(true);
   }
-  const hasProvider = typeof window !== "undefined" && !!window.ethereum;
-  const shouldUseMetaMask = useMetaMask ?? hasProvider;
 
   if (useMetaMask && !hasProvider) {
     setMetamaskInstalled(false);
@@ -72,10 +74,10 @@ export const getWeb3 = () => {
   return web3Instance;
 };
 
+export const hasWeb3 = () => {
+  return typeof window !== "undefined" && !!window.ethereum;
+};
+
 export const resetWeb3 = (): void => {
   web3Instance = null;
 };
-
-const web3 = getWeb3();
-
-export default web3;
